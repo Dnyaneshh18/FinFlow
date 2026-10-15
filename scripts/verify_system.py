@@ -22,11 +22,13 @@ def main():
 
     # 1. DATABASE CHECK
     print("\n[1/5] Checking PostgreSQL Database Connection...")
-    db_url = "postgresql://postgres:Nandu%40123@127.0.0.1:5432/finflow"
+    from finflow.core.config import get_settings
+    settings = get_settings()
+    db_url = settings.database_url.replace("+psycopg", "")
     try:
         conn = psycopg.connect(db_url)
         cur = conn.cursor()
-        print("  -> PostgreSQL Connection: OK (Connected to 127.0.0.1:5432/finflow)")
+        print(f"  -> PostgreSQL Connection: OK (Connected to {db_url.split('@')[-1]})")
     except Exception as e:
         print(f"  -> PostgreSQL Connection FAILED: {e}")
         sys.exit(1)
