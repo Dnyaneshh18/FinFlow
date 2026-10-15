@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: finflow-db
+    environment:
+      POSTGRES_USER: finflow
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: finflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finflow -d finflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # FastAPI Backend
+  api:
+    build: .
+    container_name: finflow-api
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn finflow.api.app:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      DATABASE_URL: postgresql+psycopg://finflow:changeme@db:5432/finflow
+      APP_ENV: development
+      APP_DEBUG: "true"
+      LOG_LEVEL: INFO
+      LOG_FORMAT: text
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Streamlit Dashboard
+  dashboard:
+    build: .
+    container_name: finflow-dashboard
+    command: >
+      streamlit run finflow/dashboard/app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
+    environment:
+      DATABASE_URL: postgresql+psycopg://finflow:changeme@db:5432/finflow
+      APP_ENV: development
+      LOG_FORMAT: text
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+    driver: local
