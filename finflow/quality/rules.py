@@ -100,11 +100,7 @@ def check_valid_date(row: dict) -> QualityCheckResult:
     """Transaction date must be a valid, parseable date."""
     value = row.get("date_parsed")
     raw_value = row.get("transaction_date")
-    passed = (
-        value is not None
-        and not pd.isna(value)
-        and isinstance(value, datetime)
-    )
+    passed = value is not None and not pd.isna(value) and isinstance(value, datetime)
     return QualityCheckResult(
         rule_id="VALID_DATE",
         passed=passed,

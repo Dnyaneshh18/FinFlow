@@ -9,11 +9,13 @@ This script independently inspects:
 6. Full test suite status
 """
 
+import json
 import sys
 import urllib.request
-import json
 from decimal import Decimal
+
 import psycopg
+
 
 def main():
     print("=" * 70)
@@ -23,6 +25,7 @@ def main():
     # 1. DATABASE CHECK
     print("\n[1/5] Checking PostgreSQL Database Connection...")
     from finflow.core.config import get_settings
+
     settings = get_settings()
     db_url = settings.database_url.replace("+psycopg", "")
     try:
@@ -62,7 +65,9 @@ def main():
     """)
     recon_rows = cur.fetchall()
     for status, count, diff in recon_rows:
-        print(f"  * Status: {status:<22} | Count: {count:>4} | Total Diff: ${Decimal(str(diff)):>10.2f}")
+        print(
+            f"  * Status: {status:<22} | Count: {count:>4} | Total Diff: ${Decimal(str(diff)):>10.2f}"
+        )
 
     # Show exact sample amount mismatch
     cur.execute("""
@@ -73,7 +78,9 @@ def main():
     """)
     print("\n  Sample Detected Variances (Source A vs Source B):")
     for ref, a_amt, b_amt, diff, reason in cur.fetchall():
-        print(f"    - Ref: {ref} | Source A: ${a_amt} | Source B: ${b_amt} | Diff: ${diff} ({reason})")
+        print(
+            f"    - Ref: {ref} | Source A: ${a_amt} | Source B: ${b_amt} | Diff: ${diff} ({reason})"
+        )
 
     # Show exact sample data quality rejection
     print("\n  Sample Detected Quality Rejections:")
@@ -97,7 +104,7 @@ def main():
 
         res2 = urllib.request.urlopen("http://127.0.0.1:8000/api/v1/reconciliation/summary")
         recon_sum = json.loads(res2.read().decode())
-        print(f"  * GET /api/v1/reconciliation/summary:")
+        print("  * GET /api/v1/reconciliation/summary:")
         print(f"      - Matched Transactions : {recon_sum['matched']}")
         print(f"      - Amount Mismatches    : {recon_sum['amount_mismatches']}")
         print(f"      - Total Balance Diff   : ${Decimal(recon_sum['total_difference']):,.2f}")
@@ -109,13 +116,16 @@ def main():
     print("\n[5/5] Testing Live Streamlit Dashboard...")
     try:
         res_ui = urllib.request.urlopen("http://127.0.0.1:8501")
-        print(f"  * GET http://127.0.0.1:8501 -> HTTP {res_ui.status} (Dashboard is serving web traffic)")
+        print(
+            f"  * GET http://127.0.0.1:8501 -> HTTP {res_ui.status} (Dashboard is serving web traffic)"
+        )
     except Exception as e:
         print(f"  * Streamlit Check Failed: {e}")
 
     print("\n" + "=" * 70)
     print(" VERIFICATION CONCLUSION: ALL SYSTEMS & DATA ARE 100% OPERATIONAL")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     main()

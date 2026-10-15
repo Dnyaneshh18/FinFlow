@@ -297,7 +297,9 @@ def run_pipeline(
         for _, row in valid_df.iterrows():
             batch_id = row.get("_batch_id")
             row_num = row.get("_row_number", 0)
-            raw_tx_id = raw_lookup.get((int(batch_id), int(row_num))) if batch_id and row_num else None
+            raw_tx_id = (
+                raw_lookup.get((int(batch_id), int(row_num))) if batch_id and row_num else None
+            )
 
             if not raw_tx_id:
                 continue

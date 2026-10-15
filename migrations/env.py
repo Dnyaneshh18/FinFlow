@@ -6,15 +6,14 @@ rather than the alembic.ini hardcoded value.
 
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
 from alembic import context
+
+import finflow.db.models  # noqa: F401 — ensure models are registered
+from finflow.core.config import get_settings
 
 # Import our models and base
 from finflow.db.base import Base
-import finflow.db.models  # noqa: F401 — ensure models are registered
 from finflow.db.session import get_engine
-
-from finflow.core.config import get_settings
 
 # Alembic Config object
 config = context.config
